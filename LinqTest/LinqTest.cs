@@ -16,43 +16,43 @@ namespace LinqTest
 
         private delegate void TestDelegate();
 
-        private Int64 TimingTest(TestDelegate TestMethod)
+        private long TimeCost(TestDelegate testMethod)
         {
             var sw = new Stopwatch();
             sw.Start();
             for (var i = 0; i < RepeatTimes; ++i)
-                TestMethod();
+                testMethod();
             sw.Stop();
             return sw.ElapsedMilliseconds / RepeatTimes;
         }
 
-        public Int64 DoLinqTimingTest() { return TimingTest(DoLinq); }
-        public Int64 DoForeachTimingTest() { return TimingTest(DoForeach); }
+        public long LinqTimingTest() { return TimeCost(DoLinq); }
+        public long ForeachTimingTest() { return TimeCost(DoForeach); }
+        public long PLinqTimingTest() { return TimeCost(DoPLinq); }
 
+        private void DoPLinq() {
+            var count = Samples.AsParallel().Count(sample => Equals(sample, Sought));
+        }
         private void DoLinq()
         {
-            var result = Samples.Where(item => Equals(item, Sought)).ToList();
+            var count = Samples.Count(sample => Equals(sample, Sought));
         }
 
         private void DoForeach()
         {
-            var results = new List<object>();
-            foreach (var item in Samples)
-                if (Equals(item, Sought))
-                    results.Add(item);
+            var count = 0;
+            foreach (var sample in Samples) 
+                if (Equals(sample, Sought)) ++count;
         }
 
         public int RepeatTimes
         {
             get { return _repeatTimes; }
-            set {
-                _repeatTimes = value < 1 ? 1 : value;
-            }
+            set { _repeatTimes = value < 1 ? 1 : value; }
         }
 
         private List<object> Samples { get; set; }
         private object Sought { get; set; }
-
         private int _repeatTimes;
     }
 }
